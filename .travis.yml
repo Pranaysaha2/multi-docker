@@ -1,0 +1,40 @@
+sudo: required
+language: generic
+
+services:
+  - docker
+
+before_install:
+  - docker build -t shebangdocker/react-test -f ./client/Dockerfile.dev   ./client
+
+script:
+  - docker run -e CI=true shebangdocker/react-test npm test 
+
+after_success:
+  - docker build -t shebangdocker/multi-client ./client
+  - docker build -t shebangdocker/multi-nginx ./nginx
+  - docker build -t shebangdocker/multi-server ./server
+  - docker build -t shebangdocker/multi-worker ./worker
+
+  # login to the  docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push shebangdocker/multi-client
+  - docker push shebangdocker/multi-nginx
+  - docker push shebangdocker/multi-server
+  - docker push shebangdocker/multi-worker 
+
+deploy:
+  provider: elasticbeanstalk
+  region: ap-south-1
+  app: multi-docker
+  env: Multidocker-env
+  bucket_name: elasticbeanstalk-ap-south-1-260010222560
+  bucket_path: docker-multi
+  #below on means what we push to master branch travis will deploy that only
+  on:
+    branch: master
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_KEY
+
+
