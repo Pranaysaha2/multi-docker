@@ -3,7 +3,7 @@
     "containerDefinations": [
         {
             "name": "client",
-            "image": "shebanhdocker/multi-client",
+            "image": "shebangdocker/multi-client",
             "hostname": "client",
             "essential": false,
             "memory": 128
